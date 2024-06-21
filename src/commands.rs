@@ -29,6 +29,20 @@ pub fn execute_command(input: &str) {
         cmd if cmd.starts_with("mkd") => create_directory(cmd),
         cmd if cmd.starts_with("mkf") => create_file(cmd),
         cmd if cmd.starts_with("rmv") => remove_item(cmd),
+        clear if clear == "clear" => {
+            print!("\x1B[2J\x1B[1;1H");
+        }
+        "reboot" => {
+            println!("Rebooting...");
+            let output = Command::new("reboot").output().expect("Failed to execute command");
+            println!("{}", String::from_utf8_lossy(&output.stdout));
+        }
+        "shutdown" => {
+            println!("Shutting down...");
+            let output = Command::new("shutdown").output().expect("Failed to execute command");
+            println!("{}", String::from_utf8_lossy(&output.stdout));
+        }
+
         _ => println!("???"),
         
 
