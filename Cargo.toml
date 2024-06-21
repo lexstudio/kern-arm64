@@ -10,5 +10,4 @@ edition = "2021"
 chrono = "0.4"
 task = "0.0.1"
 rand = "0.8"
-ctrlc = "3.2"
-catppuccin = "2.2.0"
+
