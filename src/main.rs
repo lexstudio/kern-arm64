@@ -18,10 +18,7 @@ pub fn sys() {
     
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
-    ctrlc::set_handler(move || {
-        println!("\nError: Ctrl+C pressed! Restarting...");
-        // No change to any running flag, just an informative message.
-    }).expect("Error setting Ctrl+C handler");
+
 
     while running.load(Ordering::SeqCst) {
         print!("kern-arm64# ");
@@ -40,32 +37,32 @@ pub fn sys() {
 fn main() {
     println!("\x1B[2J\x1B[1;1H"); // ANSI escape codes for clearing screen
     println!("BIOS: Power on self test...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
 
     println!("BIOS: Checking hardware integrity...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
 
     println!("BIOS: Detecting storage devices...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
 
     println!("BIOS: Hardware check passed. Loading bootloader...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
     println!("Bootloader: Initializing...");
-    sleep(std::time::Duration::from_millis(010));  
+    sleep(std::time::Duration::from_millis(015));  
     println!("Bootloader: Checking file system...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
     println!("Bootloader: Loading kernel into memory...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
     println!("Kernel: Starting system services...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
    
     println!("Kernel: Mounting file systems...");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
     println!("interface");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
     println!("kern load");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
     println!("kern hello!");
-    sleep(std::time::Duration::from_millis(010));
+    sleep(std::time::Duration::from_millis(015));
        sys();
 }

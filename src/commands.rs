@@ -21,7 +21,14 @@ pub fn execute_command(input: &str) {
         "crate" => qwe(),
         "ls" => list_file(),
         cmd if cmd.starts_with("cd") => change_directory(cmd),
-        cmd if cmd.starts_with("vi") => open_vi(),
+        cmd if cmd.starts_with("vi") => {
+            let parts: Vec<&str> = cmd.split_whitespace().collect();
+            let file_path = if parts.len() > 1 { Some(parts[1]) } else { None };
+            open_vi(file_path); // Pass the file path to open_vi
+        }
+        cmd if cmd.starts_with("mkd") => create_directory(cmd),
+        cmd if cmd.starts_with("mkf") => create_file(cmd),
+        cmd if cmd.starts_with("rmv") => remove_item(cmd),
         _ => println!("???"),
         
 
@@ -97,17 +104,23 @@ fn change_directory(command: &str) {
 }
 // vi command that start vi editor with path of file after vi Command
 
+fn open_vi(file_path: Option<&str>) {
+    let mut command = Command::new("vi");
 
-fn open_vi() {
-    // Attempt to open vi directly (no path restrictions)
-    match Command::new("vi").spawn() {
+    if let Some(path) = file_path {
+        command.arg(path); // Add the file path as an argument
+    }
+
+    match command.spawn() {
         Ok(mut child) => {
-            // Optionally wait for the child process to finish
-            child.wait().expect("Failed to wait on child"); 
+            child.wait().expect("Failed to wait on child");
         }
         Err(err) => {
-            // If vi is not found, try to run it with `whereis vi`
-            match Command::new("sh").arg("-c").arg("whereis vi | cut -d' ' -f2 | xargs vi").spawn() {
+            match Command::new("sh")
+                .arg("-c")
+                .arg("whereis vi | cut -d' ' -f2 | xargs vi")
+                .spawn()
+            {
                 Ok(mut child) => {
                     child.wait().expect("Failed to wait on child");
                 }
@@ -116,5 +129,104 @@ fn open_vi() {
                 }
             }
         }
+    }
+}
+
+fn create_directory(command: &str) {
+    let parts: Vec<&str> = command.split_whitespace().collect();
+
+    if parts.len() < 2 {
+        println!("Usage: mkd <directory_name>");
+        return;
+    }
+
+    let dir_name = parts[1];
+    let current_dir = env::current_dir().unwrap();  // Get current directory
+    let new_dir_path = current_dir.join(dir_name);
+
+    // Check if directory already exists
+    if new_dir_path.exists() {
+        println!("Directory '{}' already exists.", dir_name);
+        return;
+    }
+
+    // Create directory with error handling
+    match fs::create_dir(&new_dir_path) {
+        Ok(_) => println!("Directory '{}' created successfully.", dir_name),
+        Err(err) => match err.kind() {
+            std::io::ErrorKind::PermissionDenied => {
+                println!("Error: Permission denied to create directory.");
+            }
+            _ => println!("Error creating directory: {}", err),
+        },
+    }
+}
+
+// ... (other imports)
+
+
+// ... (other functions: open_vi, change_directory, create_directory)
+
+fn create_file(command: &str) {
+    let parts: Vec<&str> = command.split_whitespace().collect();
+
+    if parts.len() < 2 {
+        println!("Usage: mkf <file_name>");
+        return;
+    }
+
+    let file_name = parts[1];
+    let current_dir = env::current_dir().unwrap();
+    let new_file_path = current_dir.join(file_name);
+
+    // Check if file already exists
+    if new_file_path.exists() {
+        println!("File '{}' already exists.", file_name);
+        return;
+    }
+
+    // Create file with error handling
+    match File::create(&new_file_path) {
+        Ok(_) => println!("File '{}' created successfully.", file_name),
+        Err(err) => match err.kind() {
+            std::io::ErrorKind::PermissionDenied => {
+                println!("Error: Permission denied to create file.");
+            }
+            _ => println!("Error creating file: {}", err),
+        },
+    }
+}
+
+fn remove_item(command: &str) {
+    let parts: Vec<&str> = command.split_whitespace().collect();
+
+    if parts.len() < 2 {
+        println!("Usage: rm <file_or_directory_name>");
+        return;
+    }
+
+    let item_name = parts[1];
+    let current_dir = env::current_dir().unwrap();
+    let item_path = current_dir.join(item_name);
+
+    // Check if item exists
+    if !item_path.exists() {
+        println!("Item '{}' does not exist.", item_name);
+        return;
+    }
+
+    // Remove file or directory based on type
+    if item_path.is_file() {
+        match fs::remove_file(&item_path) {
+            Ok(_) => println!("File '{}' removed successfully.", item_name),
+            Err(err) => println!("Error removing file: {}", err),
+        }
+    } else if item_path.is_dir() {
+        match fs::remove_dir_all(&item_path) {
+            Ok(_) => println!("Directory '{}' removed successfully.", item_name),
+            Err(err) => println!("Error removing directory: {}", err),
+        }
+    } else {
+        println!("Invalid item type.");
     }
 }
